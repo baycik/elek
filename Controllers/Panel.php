@@ -10,9 +10,12 @@ class Panel{
     public function table( int $offset, int $limit=30 ){
         echo "int $offset, int $limit=30";
         
+        $PanelModel= new \Models\PanelModel($offset,$limit);
         
+        $data=[
+            'metinler'=>$PanelModel->textStatsListGet()
+            ];
         
-        
-        
+        view('dashboard',$data);
     }
 }

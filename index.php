@@ -5,7 +5,7 @@ spl_autoload_register(function ($class_name) {
 
 $path=$_GET['page']??'Panel/index';
 list($cname,$cmethod)=explode('/',$path);
-$cname='\Controllers\\'.$cname;
+$cname='\Controllers\\'.$cname; 
 try{
     $Controller=new $cname;
     $arguments= argumentsParse($Controller, $cmethod);

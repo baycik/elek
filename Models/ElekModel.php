@@ -1,8 +1,6 @@
 <?php
-header('Content-Type: text/plain; charset=UTF-8');
-
+namespace Models;
 include 'Db.php';
-
 class ParserModel {
     private $pageLength=1000;
     private $fileOffset=0;
@@ -14,7 +12,7 @@ class ParserModel {
     
     public function setFile( $path ){
         $this->path=$path;
-        $row=$this->db->query("SELECT * FROM text_list WHERE text_file_path='$this->path'")->getRow();
+        $row=$this->db->query("SELECT * FROM text_list WHERE text_file_path='$this->path'")->row();
         if($row){
             $this->text_id=$row->text_id;
         } else {
@@ -46,6 +44,7 @@ class ParserModel {
             }
             fclose($source_file);
         }
+        $this->textStatsCalc($this->text_id);
     }
     
     public function split_to_sentences( $page ){
@@ -64,7 +63,7 @@ class ParserModel {
             if( !$word ){
                 continue;
             }
-            $row=$this->db->query("SELECT * FROM word_list WHERE word_data='$word'")->getRow();
+            $row=$this->db->query("SELECT * FROM word_list WHERE word_data='$word'")->row();
             if($row){
                 $this->word_id=$row->word_id;
             } else {
@@ -75,8 +74,20 @@ class ParserModel {
             $this->db->query("INSERT sentence_member_list SET sentence_id='$this->sentence_id', word_id='$this->word_id'");
         }
     }
-}
+    
+    public function textStatsCalc( $text_id ){
+        $sql="
+            UPDATE
+                text_list
+            SET
+                text_letter_count=CHAR_LENGTH(text_data),
+                text_sentence_count=(SELECT COUNT(*) FROM sentence_list WHERE text_id=text_id),
+                text_word_total_count=(SELECT COUNT(*) FROM sentence_member_list WHERE sentence_id=sentence_id),
+                text_word_unique_count=(SELECT COUNT(DISTINCT word_id) FROM sentence_member_list WHERE sentence_id=sentence_id) 
+            WHERE
+                text_id='$text_id'
+            ";
+        return $this->db->query($sql);
+    }
 
-$Elek=new ElekParser();
-$Elek->setFile('src/metin1.txt');
-$Elek->read();
+}

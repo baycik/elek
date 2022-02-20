@@ -1,7 +1,7 @@
 <?php
 namespace Models;
 include 'Db.php';
-class ParserModel {
+class ElekModel {
     private $pageLength=1000;
     private $fileOffset=0;
     private $path=null;
@@ -58,7 +58,7 @@ class ParserModel {
     }
     
     public function split_to_words( $sentence ){
-        $words = preg_split('/[^\w’]+/iu', $sentence, null);
+        $words = preg_split('/[^[:alpha:]’]+/iu', $sentence, null);
         foreach ($words as $word){
             if( !$word ){
                 continue;

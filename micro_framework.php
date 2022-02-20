@@ -2,17 +2,6 @@
 spl_autoload_register(function ($class_name) {
     include_once $class_name . '.php';
 });
-
-$path=$_GET['page']??'Panel/index';
-list($cname,$cmethod)=explode('/',$path);
-$cname='\Controllers\\'.$cname; 
-try{
-    $Controller=new $cname;
-    $arguments= argumentsParse($Controller, $cmethod);
-    echo $Controller->$cmethod(...$arguments);
-} catch (Exception $ex) {
-    die("Can't load controller");
-}
 function argumentsParse( $Class, $method ){
     $arguments=[];
     $reflectionMethod = new ReflectionMethod($Class, $method);
@@ -24,10 +13,24 @@ function argumentsParse( $Class, $method ){
     }
     return $arguments;
 }
-
 function view( $path, $data ){
     extract($data);
     include "Views/header.php";
     include "Views/{$path}.php";
     include "Views/footer.php";
+}
+
+$path=$_GET['page']??'Metin/index';
+$page=explode('/',$path);
+$cname='\Controllers\\'.$page[0]??'Metin';
+$cmethod=$page[1]??'index';
+try{
+    $Controller=new $cname;
+    $arguments= argumentsParse($Controller, $cmethod);
+    echo $Controller->$cmethod(...$arguments);
+} catch (Error $ex) {
+    $code=$ex->getCode();
+    $message=$ex->getMessage();
+    http_response_code($code?$code:'500');
+    die($message);
 }

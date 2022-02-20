@@ -10,6 +10,11 @@ class Metin{
         return $MetinModel->itemUpdate($text_id,$field,$value);
     }
     
+    public function itemDelete( int $text_id ){
+        $MetinModel= new \Models\MetinModel();
+        return $MetinModel->itemDelete($text_id);
+    }
+    
     public function table(){
        // echo "int $offset, int $limit=30";
         
@@ -18,6 +23,6 @@ class Metin{
             'metinler'=>$MetinModel->textStatsListGet()??[]
             ];
         
-        view('dashboard',$data);
+        view('metinler',$data);
     }
 }

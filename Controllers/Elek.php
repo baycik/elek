@@ -7,7 +7,7 @@ class Elek{
     
     public function fileUpload(){
         $tempName=$_FILES['files']['tmp_name'];
-        $storedName=sprintf('./src/%s.%s',sha1_file($tempName),'.txt');
+        $storedName=sprintf('./src/%s.%s',sha1_file($tempName),'txt');
         switch ($_FILES['files']['error']) {
             case UPLOAD_ERR_OK:
                 break;
@@ -29,5 +29,6 @@ class Elek{
         $ElekModel= new \Models\ElekModel();
         $ElekModel->setFile($storedName);
         $ElekModel->read();
+        return 'ok';
     }
 }

@@ -16,7 +16,7 @@ class ElekModel {
         if($row){
             $this->text_id=$row->text_id;
         } else {
-            $this->db->query("INSERT text_list SET text_file_path='$this->path'");
+            $this->db->query("INSERT text_list SET text_file_path='$this->path',created_at=NOW()");
             $this->text_id=$this->db->insert_id;
         }
         return $this;
@@ -35,8 +35,10 @@ class ElekModel {
                 $pageFinish=max(strrpos($buffer, '.'),strrpos($buffer, '?'),strrpos($buffer, '!'))+1;
                 $this->fileOffset+=$pageFinish;
                 file_put_contents($this->path.".offset", $this->fileOffset);
-                $page= substr($buffer, 0, $pageFinish);
-                
+                $page= $this->db->escape_string(substr($buffer, 0, $pageFinish));
+                if(!strlen($page)){
+                    continue;
+                }
                 $this->db->begin_transaction();
                 $this->db->query("UPDATE text_list SET text_data=CONCAT(COALESCE(text_data,''),'$page') WHERE text_id='$this->text_id'");
                 $this->split_to_sentences($page);
@@ -49,20 +51,25 @@ class ElekModel {
     
     public function split_to_sentences( $page ){
         $page=str_replace('  ', ' ', $page);
-        $sentences = preg_split('/(?<=[.?!])\s+(?=[\w])/iu', $page, null);
+        $page=str_replace(['\r','\n'], '', $page);
+        $sentences = preg_split('/(?<=[.?!])\s+(?=[\w])/iu', $page, 0);
         foreach($sentences as $sentence){
-            $this->db->query("INSERT sentence_list SET text_id='$this->text_id', sentence_data='$sentence'");
+            if(!strlen($sentence)){
+                continue;
+            }
+            $this->db->query("INSERT sentence_list SET text_id='$this->text_id', sentence_data='".$this->db->escape_string($sentence)."'");
             $this->sentence_id=$this->db->insert_id;
             $this->split_to_words( $sentence );
         }
     }
     
     public function split_to_words( $sentence ){
-        $words = preg_split('/[^[:alpha:]’]+/iu', $sentence, null);
+        $words = preg_split('/[^[:alpha:]’]+/iu', $sentence, 0);
         foreach ($words as $word){
             if( !$word ){
                 continue;
             }
+            $word=$this->db->escape_string($word);
             $row=$this->db->query("SELECT * FROM word_list WHERE word_data='$word'")->row();
             if($row){
                 $this->word_id=$row->word_id;

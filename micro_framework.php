@@ -3,6 +3,10 @@ spl_autoload_register(function ($class_name) {
     include_once $class_name . '.php';
 });
 function argumentsParse( $Class, $method ){
+    if( !method_exists($Class,$method) ){
+        http_response_code(404);
+        die('Page not found');
+    }
     $arguments=[];
     $reflectionMethod = new ReflectionMethod($Class, $method);
     $method_args_config = $reflectionMethod->getParameters();

@@ -3,10 +3,11 @@ namespace Models;
 
 class Db extends \mysqli{
     function __construct() {
-        parent::__construct('127.0.0.1', 'root', 'root', 'elek_db');
+        parent::__construct('127.0.0.1', 'root', '', 'elek_db');
     }
     
     public $result;
+    #[\ReturnTypeWillChange]
     public function query( string $sql,int $result_mode = MYSQLI_STORE_RESULT){
         $this->result=parent::query($sql,$result_mode);
         if($this->errno){

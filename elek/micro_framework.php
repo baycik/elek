@@ -2,6 +2,17 @@
 spl_autoload_register(function ($class_name) {
     include_once $class_name . '.php';
 });
+function handleCors(){
+    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, access-control-allow-origin");
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Credentials: true");
+    header("Access-Control-Allow-Origin:*");
+    $method = $_SERVER['REQUEST_METHOD'];
+    if( $method == "OPTIONS" ) {
+        die();
+    }
+}
+handleCors();
 function argumentsParse( $Class, $method ){
     if( !method_exists($Class,$method) ){
         http_response_code(404);
@@ -31,7 +42,7 @@ $cmethod=$page[1]??'index';
 try{
     $Controller=new $cname;
     $arguments= argumentsParse($Controller, $cmethod);
-    echo $Controller->$cmethod(...$arguments);
+    echo json_encode( $Controller->$cmethod(...$arguments) );
 } catch (Error $ex) {
     $code=$ex->getCode();
     $message=$ex->getMessage();

@@ -4,34 +4,41 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-body{
-  padding:0px;
-  margin:0px;
-}
-main{
+#main{
   display:grid;
   width:100%;
   height:100vh;
-  grid-template-columns:150px auto;
-}
-nav{
-  background: #666
+  grid-template-columns:200px auto;
+  margin: 10px;
+  gap:10px
 }
 </style>
 <template>
-  <main>
+  <div id="main">
     <nav>
-      <img alt="Vue logo" src="./assets/logo.png">
-      <ul>
-        <li><a href="#/">Text List</a></li>
-        <li><a href="#/sentence-list">Sentence List</a></li>
-        <li><a href="#/word-list">Word List</a></li>
-      </ul>
+      <div class="ui segment">
+        <img class="ui fluid centered image" alt="Elek logo" src="./assets/mesh.png"/>
+        <p></p>
+        <h2 class="ui header teal">Elek projesi</h2>
+      </div>
+      
+
+      <div class="ui vertical fluid menu">
+        <a href="#/" class="teal item">
+          Text List
+        </a>
+        <a href="#/sentence-list" class="item">
+          Sentence List
+        </a>
+        <a href="#/word-list" class="item">
+          Word List
+        </a>
+      </div>
     </nav>
     <section>
-
+      <router-view></router-view>
     </section>
-  </main>
+  </div>
 </template>
 
 <script>

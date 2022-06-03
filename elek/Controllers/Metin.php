@@ -14,6 +14,11 @@ class Metin{
         $MetinModel= new \Models\MetinModel();
         return $MetinModel->itemDelete($text_id);
     }
+
+    public function listGet(){
+        $MetinModel= new \Models\MetinModel();
+        return $MetinModel->textStatsListGet();
+    }
     
     public function table(){
        // echo "int $offset, int $limit=30";

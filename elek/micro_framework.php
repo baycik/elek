@@ -13,6 +13,9 @@ function handleCors(){
     }
 }
 handleCors();
+function mb_escape(string $string){
+    return mb_ereg_replace('[\x00\x0A\x0D\x1A\x22\x27\x5C]', '\\\0', $string);
+}
 function argumentsParse( $Class, $method ){
     if( !method_exists($Class,$method) ){
         http_response_code(404);
@@ -24,7 +27,7 @@ function argumentsParse( $Class, $method ){
     foreach( $method_args_config as $param ){
         $param_name=$param->getName();
         $param_default=$param->isDefaultValueAvailable()?$param->getDefaultValue():null;
-        $arguments[]=$_REQUEST[$param_name]??$param_default;
+        $arguments[]=mb_escape($_REQUEST[$param_name])??$param_default;
     }
     return $arguments;
 }

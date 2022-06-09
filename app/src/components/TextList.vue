@@ -3,66 +3,64 @@
 </style>
 <template>
     
-<div class="ui red segment" style="margin:50px">
+<sui-segment color="red">
     <h2>Yuklenilgen metinler</h2>
-    <table  class="ui celled table">
+    <table  class="ui stackable table">
         <thead>
             <tr>
-                <th style="width:10%"></th>
-                <th style="width:10%">Yazar</th>
-                <th style="width:10%">Serleva</th>
-                <th style="width:10%">Yuklenme tarihi</th>
-                <th style="width:10%">Arifler</th>
-                <th style="width:10%">Cumleler</th>
-                <th style="width:10%">Sozler(Essiz)</th>
+                <th>Yazar adi</th>
+                <th>Serleva</th>
+                <th>Yuklenme tarihi</th>
+                <th>Arifler sayisi</th>
+                <th>Cumleler</th>
+                <th>Sozler(Essiz)</th>
+                <th></th>
             </tr> 
         </thead>
         <tbody>
-            <tr v-for="metin of textList" :key="metin.text_id">
+            <tr v-for="metin in computedTextList" :key="metin.text_id">
                 <td>
-                    <button class="ui button" onclick="ItemList.delete('{{metin.text_id}}')"><i class="icon trash red"></i> Sil</button>
+                    <sui-input v-model="metin.text_author" @change="itemUpdate(metin.text_id,'text_author',metin.text_author)" style="width:100%"/>
                 </td>
                 <td>
-                    <div class="ui input">
-                        <input value="{{metin.text_author}}" onchange="ItemList.update('{{metin.text_id}}','text_author',this.value)" style="width:100%"/>
-                    </div>
+                    <sui-input v-model="metin.text_title" @change="itemUpdate('{{metin.text_id}}')" style="width:100%"/>
                 </td>
                 <td>
-                    <div class="ui input">
-                        <input value="{{metin.text_title}}" onchange="ItemList.update('{{metin.text_id}}','text_title',this.value)" style="width:100%"/>
-                    </div>
-                </td>
-                <td>
-                    {{metin.created_at}}
+                    {{metin.date}}
                 </td>
                 <td>
                     {{metin.text_letter_count}}
                 </td>
                 <td>
-                    <div style="display:grid;grid-template-columns:1fr 1fr">
-                        <div>
-                            {{metin.text_sentence_count}}
-                        </div>
-                        <div>
-                            <button class="ui button" onclick="ItemList.openSentences('{{metin.text_id}}','{{metin.text_title}}')"><i class="icon bars"></i>Koz at</button>
-                        </div>
-                    </div>
+                    <sui-button animated fluid>
+                        <sui-button-content visible>{{metin.text_sentence_count}}</sui-button-content>
+                        <sui-button-content hidden @click="$router.push('sentence-list')">
+                            koz at <sui-icon name="arrow right" />
+                        </sui-button-content>
+                    </sui-button>
                 </td>
                 <td>
-                    <div style="display:grid;grid-template-columns:1fr 1fr">
-                        <div>
-                        {{metin.text_word_total_count}}({{metin.text_word_unique_count}})
-                        </div>
-                        <div>
-                        <button class="ui button" onclick="ItemList.openWords('{{metin.text_id}}','{{metin.text_title}}')"><i class="icon bars"></i>Koz at</button>
-                        </div>
-                    </div>
+                    <sui-button animated fluid>
+                        <sui-button-content visible>{{metin.text_word_total_count}}({{metin.text_word_unique_count}})</sui-button-content>
+                        <sui-button-content hidden @click="$router.push('word-list')">
+                            koz at <sui-icon name="arrow right" />
+                        </sui-button-content>
+                    </sui-button>
+                </td>
+                <td>
+                    <sui-dropdown button class="primary" icon="bars">
+                        <sui-dropdown-menu>
+                            <sui-dropdown-item text="Cumlelere koz at" icon="list" />
+                            <sui-dropdown-item text="Sozlere koz at" icon="list alternate outline" />
+                            <sui-dropdown-item text="Metinni Sil" icon="trash red"  @click="itemDelete('{{metin.text_id}}')"/>
+                        </sui-dropdown-menu>
+                    </sui-dropdown>
                 </td>
             </tr>
         </tbody>
     </table>
     <button class="ui button" onclick="ItemList.fileUploadInit()"><i class="icon plus"></i>Metin yukle</button>
-</div>
+</sui-segment>
 
 <input type="file" id="itemlist_uploader" name="items[]" multiple style="display:none" onchange="ItemList.fileUpload(this.files)">
 
@@ -78,9 +76,25 @@ export default{
     created(){
         this.listGet()
     },
+    computed:{
+        computedTextList(){
+            let list=this.textList
+            for(let i in list){
+                const date=new Date(Date.parse(list[i].created_at))
+                list[i].date=date.toLocaleDateString()
+            }
+            return list
+        }
+    },
     methods:{
         async listGet(){
-            this.textList=await this.$post('Metin/listGet',{gaga:'gigi'})
+            this.textList=await this.$post('Metin/listGet')
+        },
+        async itemUpdate(text_id,field,value){
+            const request={
+                text_id,field,value
+            }
+            await this.$post('Metin/itemUpdate',request)
         }
     }
 

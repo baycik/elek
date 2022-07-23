@@ -2,7 +2,6 @@
 
 </style>
 <template>
-    
 <sui-segment color="red">
     <h2>Yuklenilgen metinler</h2>
     <table  class="ui stackable table">
@@ -34,7 +33,7 @@
                 <td>
                     <sui-button animated fluid>
                         <sui-button-content visible>{{metin.text_sentence_count}}</sui-button-content>
-                        <sui-button-content hidden @click="$router.push('sentence-list')">
+                        <sui-button-content hidden @click="$router.push(`sentence-list?text_id=${metin.text_id}`)">
                             koz at <sui-icon name="arrow right" />
                         </sui-button-content>
                     </sui-button>
@@ -42,7 +41,7 @@
                 <td>
                     <sui-button animated fluid>
                         <sui-button-content visible>{{metin.text_word_total_count}}({{metin.text_word_unique_count}})</sui-button-content>
-                        <sui-button-content hidden @click="$router.push('word-list')">
+                        <sui-button-content hidden @click="$router.push(`word-list?text_id=${metin.text_id}`)">
                             koz at <sui-icon name="arrow right" />
                         </sui-button-content>
                     </sui-button>

@@ -19,7 +19,7 @@ function mb_escape(string $string){
 function argumentsParse( $Class, $method ){
     if( !method_exists($Class,$method) ){
         http_response_code(404);
-        die('Page not found');
+        die('"Page not found"');
     }
     $arguments=[];
     $reflectionMethod = new ReflectionMethod($Class, $method);

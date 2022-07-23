@@ -4,6 +4,9 @@ import App from './App.vue'
 import FomanticUI from 'vue-fomantic-ui'
 import 'fomantic-ui-css/semantic.min.css'
 
+
+
+
 const app=createApp(App)
 .use(FomanticUI)
 .use(router)

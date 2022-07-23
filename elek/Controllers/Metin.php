@@ -17,17 +17,11 @@ class Metin{
 
     public function listGet(){
         $MetinModel= new \Models\MetinModel();
-        return $MetinModel->textStatsListGet();
+        return $MetinModel->listGet();
     }
-    
-    public function table(){
-       // echo "int $offset, int $limit=30";
-        
+
+    public function itemGet($text_id){
         $MetinModel= new \Models\MetinModel();
-        $data=[
-            'metinler'=>$MetinModel->textStatsListGet()??[]
-            ];
-        
-        view('metinler',$data);
+        return $MetinModel->itemGet($text_id);
     }
 }

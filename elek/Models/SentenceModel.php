@@ -19,6 +19,24 @@ class SentenceModel{
                 text_id='$text_id'
                 AND sentence_data LIKE '%$like%'
             ";
+        $sentences= $this->db->query($sql)->rows();
+        foreach($sentences as $sent){
+            $sent->meta=$this->itemMetaGet($sent->sentence_id);
+        }
+        return $sentences;
+    }
+
+    public function itemMetaGet( $sentence_id ){
+        $sql="
+            SELECT
+                *
+            FROM
+                sentence_member_list
+                    JOIN
+                word_list USING(word_id)
+            WHERE
+                sentence_id='$sentence_id'
+        ";
         return $this->db->query($sql)->rows();
     }
     

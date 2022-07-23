@@ -15,13 +15,8 @@ class Sentence{
         return $MetinModel->itemDelete($text_id);
     }
     
-    public function listView( int $text_id, string $query='' ){
+    public function listGet( int $text_id, string $query='' ){
         $SentenceModel= new \Models\SentenceModel();
-        $data=[
-            'text_id'=>$text_id,
-            'cumleler'=>$SentenceModel->listGet($text_id, $query)??[]
-            ];
-        
-        view('cumleler',$data);
+        return $SentenceModel->listGet($text_id, $query)??[];
     }
 }

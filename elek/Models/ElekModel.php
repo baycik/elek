@@ -97,4 +97,24 @@ class ElekModel {
         return $this->db->query($sql);
     }
 
+    public function wordMetaCalc(){
+        $sql="DROP TEMPORARY TABLE IF EXISTS tmp_count;
+        CREATE TEMPORARY TABLE tmp_count AS
+        (SELECT 
+            wl.word_id,COUNT(*) word_count
+        FROM
+            word_list wl
+                JOIN
+            sentence_member_list USING (word_id)
+        GROUP BY word_id
+        ORDER BY word_count DESC);
+        SET @word_rank:=0;
+        UPDATE 
+            word_list wl
+                JOIN
+            tmp_count tc USING(word_id)
+        SET wl.word_count=tc.word_count,wl.word_rank=@word_rank:=@word_rank+1
+        ;";
+    }
+
 }

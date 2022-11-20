@@ -1,16 +1,23 @@
 <template>
   <span @mouseover="detailsShow" @mouseout="detailsHide">{{chunk.data}}</span>
-  <n-popover :show="showPopover" :x="x" :y="y" trigger="manual">
-    Cool!
+  <n-popover :show="showPopover" :x="x" :y="y" trigger="manual" style="width:200px">
+    cool
+    <n-progress
+      type="line"
+      :percentage="rank"
+      :height="5"
+      :border-radius="4"
+    />
   </n-popover>
 </template>
 <script>
-import { NPopover } from 'naive-ui'
+import { NPopover,NProgress } from 'naive-ui'
 import { ref } from 'vue'
 export default {
     props:['chunk'],
     components:{
-        NPopover
+        NPopover,
+        NProgress
     },
     setup () {
         const xRef = ref(0)
@@ -45,12 +52,10 @@ export default {
             detailsHide
         }
     },
-    data(){
-        return {
+    computed:{
+        rank(){
+            return parseInt(this.chunk?.meta?.word_rank??0);
         }
-    },
-    mounted(){
-        //
     }
 }
 </script>

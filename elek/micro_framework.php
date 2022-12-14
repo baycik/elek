@@ -27,7 +27,7 @@ function argumentsParse( $Class, $method ){
     foreach( $method_args_config as $param ){
         $param_name=$param->getName();
         $param_default=$param->isDefaultValueAvailable()?$param->getDefaultValue():null;
-        $arguments[]=mb_escape($_REQUEST[$param_name])??$param_default;
+        $arguments[]=mb_escape($_REQUEST[$param_name]??$param_default);
     }
     return $arguments;
 }
@@ -45,10 +45,12 @@ $cmethod=$page[1]??'index';
 try{
     $Controller=new $cname;
     $arguments= argumentsParse($Controller, $cmethod);
+    header("Content-type:text/json");
     echo json_encode( $Controller->$cmethod(...$arguments) );
-} catch (Error $ex) {
+} catch (Throwable $ex) {
     $code=$ex->getCode();
     $message=$ex->getMessage();
+    header("Content-type:text/plain");
     http_response_code($code?$code:'500');
     die($message);
 }

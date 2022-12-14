@@ -34,6 +34,11 @@ class WordModel{
             ";
         return $this->db->query($sql)->rows();
     }
+
+    public function listCountGet(){
+        $result=$this->db->query("SELECT COUNT(*) total_count FROM word_list")->row();
+        return $result->total_count;
+    }
     
     // public function itemUpdate($text_id,$field,$value){
     //     $this->db->query("UPDATE text_list SET `$field`='$value' WHERE text_id='$text_id'");

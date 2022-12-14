@@ -6,14 +6,18 @@ import 'fomantic-ui-css/semantic.min.css'
 
 
 
-
 const app=createApp(App)
 .use(FomanticUI)
 .use(router)
 
+app.config.globalProperties.$conf = {
+    hostname:'http://localhost/elek/'
+}
+
 
 app.config.globalProperties.$post = async (uri,request)=>{
-    const url=`http://localhost/elek/?page=${uri}`;
+    const hostname=app.config.globalProperties.$conf.hostname;
+    const url=`${hostname}?page=${uri}`;
     const response = await fetch(url, {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         headers: {

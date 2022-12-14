@@ -19,4 +19,8 @@ class Sentence{
         $SentenceModel= new \Models\SentenceModel();
         return $SentenceModel->listGet($text_id, $query)??[];
     }
+    public function listMetaGet( int $text_id, string $query='' ){
+        $SentenceModel= new \Models\SentenceModel();
+        return $SentenceModel->listMetaGet($text_id, $query)??[];
+    }
 }

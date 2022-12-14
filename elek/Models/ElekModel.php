@@ -2,7 +2,7 @@
 namespace Models;
 include 'Db.php';
 class ElekModel {
-    private $pageLength=1000;
+    private $pageLength=10000;
     private $fileOffset=0;
     private $path=null;
     
@@ -12,11 +12,11 @@ class ElekModel {
     
     public function setFile( $path ){
         $this->path=$path;
-        $row=$this->db->query("SELECT * FROM text_list WHERE text_file_path='$this->path'")->row();
+        $row=$this->db->query("SELECT * FROM text_list WHERE text_file_path='".$this->db->escape_string($this->path)."'")->row();
         if($row){
             $this->text_id=$row->text_id;
         } else {
-            $this->db->query("INSERT text_list SET text_file_path='$this->path',created_at=NOW()");
+            $this->db->query("INSERT text_list SET text_file_path='".$this->db->escape_string($this->path)."',created_at=NOW()");
             $this->text_id=$this->db->insert_id;
         }
         return $this;
@@ -24,7 +24,7 @@ class ElekModel {
     
     public function read(){
         if( file_exists($this->path.".offset") ){
-            //$this->fileOffset=file_get_contents($this->path.".offset");
+            $this->fileOffset=file_get_contents($this->path.".offset");
         } else {
             $this->fileOffset=0;
         }
@@ -32,35 +32,51 @@ class ElekModel {
             while(!feof($source_file)) {
                 fseek($source_file, $this->fileOffset);
                 $buffer = fread($source_file, $this->pageLength);
-                $pageFinish=max(strrpos($buffer, '.'),strrpos($buffer, '?'),strrpos($buffer, '!'))+1;
+                $lastSentecnceFinish=max(strrpos($buffer, '.'),strrpos($buffer, '?'),strrpos($buffer, '!'));
+                if($lastSentecnceFinish){//cut out last incomlplete sentence
+                    $pageFinish=$lastSentecnceFinish+1;
+                } else {
+                    $lastWordFinish=strrpos($buffer, ' ');
+                    $pageFinish=$lastWordFinish?$lastWordFinish+1:$this->pageLength;
+                }
                 $this->fileOffset+=$pageFinish;
+                $page= substr($buffer, 0, $pageFinish);
                 file_put_contents($this->path.".offset", $this->fileOffset);
-                $page= $this->db->escape_string(substr($buffer, 0, $pageFinish));
                 if(!strlen($page)){
                     continue;
                 }
-                $this->db->begin_transaction();
-                $this->db->query("UPDATE text_list SET text_data=CONCAT(COALESCE(text_data,''),'$page') WHERE text_id='$this->text_id'");
-                $this->split_to_sentences($page);
-                $this->db->commit();
+                $this->textPageSave($page);
             }
             fclose($source_file);
+            $this->textStatsCalc($this->text_id);
+            $this->wordMetaCalc();
         }
-        $this->textStatsCalc($this->text_id);
     }
     
+    private function textPageSave($page){
+        $this->db->begin_transaction();
+        $this->db->query("UPDATE text_list SET text_data=CONCAT(COALESCE(text_data,''),'".$this->db->escape_string($page)."') WHERE text_id='$this->text_id'");
+        $this->split_to_sentences($page);
+        $this->db->commit();
+    }
+
     public function split_to_sentences( $page ){
         $page=str_replace('  ', ' ', $page);
-        $page=str_replace(['\r','\n'], '', $page);
-        $sentences = preg_split('/(?<=[.?!])\s+(?=[\w])/iu', $page, 0);
+        $page=str_replace(["\r","\n"], '', $page);
+        $sentences = preg_split('/(?<=[.?!](\s|"|”|»|’))\s?(?=[\p{Lu}\b"“«‘])|(?<=[.?!])(?=[\p{Lu}])/u', $page, 0);
+        if(!$sentences){
+            return false;
+        }
         foreach($sentences as $sentence){
             if(!strlen($sentence)){
                 continue;
             }
-            $this->db->query("INSERT sentence_list SET text_id='$this->text_id', sentence_data='".$this->db->escape_string($sentence)."'");
+            $filtered_sentence=preg_replace('/^[^\w]+|[^(\w.?!)]+$/u', '',$sentence,-1);
+            $this->db->query("INSERT sentence_list SET text_id='$this->text_id', sentence_data='".$this->db->escape_string($filtered_sentence)."'");
             $this->sentence_id=$this->db->insert_id;
             $this->split_to_words( $sentence );
         }
+        return true;
     }
     
     public function split_to_words( $sentence ){
@@ -69,16 +85,16 @@ class ElekModel {
             if( !$word ){
                 continue;
             }
-            $word=$this->db->escape_string($word);
-            $row=$this->db->query("SELECT * FROM word_list WHERE word_data='$word'")->row();
+            $word_joined=preg_replace('/\W/u','',$word,-1);
+            $row=$this->db->query("SELECT * FROM word_list WHERE word_data=LOWER('$word_joined')")->row();
             if($row){
                 $this->word_id=$row->word_id;
             } else {
-                $this->db->query("INSERT word_list SET word_data='$word'");
+                $this->db->query("INSERT IGNORE word_list SET word_data=LOWER('$word_joined')");
                 $this->word_id=$this->db->insert_id;
             }
             echo $this->db->error;
-            $this->db->query("INSERT sentence_member_list SET sentence_id='$this->sentence_id', word_id='$this->word_id'");
+            $this->db->query("INSERT IGNORE sentence_member_list SET sentence_id='$this->sentence_id', word_id='$this->word_id'");
         }
     }
     
@@ -98,23 +114,36 @@ class ElekModel {
     }
 
     public function wordMetaCalc(){
-        $sql="DROP TEMPORARY TABLE IF EXISTS tmp_count;
-        CREATE TEMPORARY TABLE tmp_count AS
-        (SELECT 
-            wl.word_id,COUNT(*) word_count
-        FROM
+        $drop_sql="DROP TEMPORARY TABLE IF EXISTS tmp_count;";
+        $create_sql="CREATE TEMPORARY TABLE tmp_count AS
+            (SELECT
+                word_id,word_count,ROW_NUMBER() OVER (ORDER BY `word_count` DESC) word_rank
+            FROM
+            (SELECT 
+                wl.word_id,COUNT(*) word_count
+            FROM
+                word_list wl
+                    JOIN
+                sentence_member_list USING (word_id)
+            GROUP BY word_id)ttt);";
+        $update_rank_sql="UPDATE
             word_list wl
                 JOIN
-            sentence_member_list USING (word_id)
-        GROUP BY word_id
-        ORDER BY word_count DESC);
-        SET @word_rank:=0;
-        UPDATE 
-            word_list wl
-                JOIN
-            tmp_count tc USING(word_id)
-        SET wl.word_count=tc.word_count,wl.word_rank=@word_rank:=@word_rank+1
-        ;";
+            tmp_count tc USING (word_id) 
+        SET 
+            wl.word_count = tc.word_count,
+            wl.word_rank = tc.word_rank";
+        $link_sql="UPDATE
+                word_list
+                    JOIN
+                lgt_wordform_list lwl ON wordform=word_data
+            SET
+                lugat_word_id=lwl.word_id,lugat_wordform_id=lwl.wordform_id
+            WHERE lugat_word_id IS NULL";
+        $this->db->query($drop_sql);
+        $this->db->query($create_sql);
+        $this->db->query($update_rank_sql);
+        $this->db->query($link_sql);
     }
 
 }

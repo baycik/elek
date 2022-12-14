@@ -26,9 +26,27 @@ class Elek{
         if ( !move_uploaded_file($tempName,$storedName) ){
             throw new \Exception('Failed to move uploaded file.');
         }
+        unlink($storedName.'.offset');
         $ElekModel= new \Models\ElekModel();
         $ElekModel->setFile($storedName);
         $ElekModel->read();
         return 'ok';
+    }
+
+
+
+    public function test(){
+        $page=file_get_contents('src/91a5ebfdf71c8a9df13abecfb9cf40a635aca33b.txt');
+        $page=str_replace('  ', ' ', $page);
+        $page=str_replace(["\r","\n"], '', $page);
+        $sentences = preg_split('/(?<=[.?!](\s|"|”|»|’))\s?(?=[\p{Lu}\b"“«‘])|(?<=[.?!])(?=[\p{Lu}])/u', $page, 0);
+        foreach($sentences as $sentence){
+            if(!strlen($sentence)){
+                continue;
+            }
+            echo $sentence."\n";
+            echo $filtered_sentence=preg_replace('/^[^\w]+|[^(\w.?!)]+$/u', '',$sentence,-1);
+            echo "\n\n";
+        }
     }
 }

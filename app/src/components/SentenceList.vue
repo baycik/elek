@@ -45,11 +45,15 @@ export default{
             let slist=this.sentenceList;
             for(const sentence of slist){
                 sentence.chunks=[]
-                const chunks=sentence.sentence_data.split(/([.!?'`",;\s\d\r\n]+)/g)
+                const regex=new RegExp(/([.!?:,;\-'‘`"”“\s\d\r\n]+)/g);
+                const chunks=sentence.sentence_data.split(regex)
+                const known_words=sentence.known_words?.split(',')||[]
                 for(let i in chunks){
+                    const is_known= !!chunks[i].match(regex) || (known_words.indexOf(chunks[i].toLowerCase())>-1)
                     sentence.chunks.push({
                         data:chunks[i],
-                        meta:this.itemFindMeta(chunks[i],sentence.meta)
+                        lower:chunks[i].toLowerCase(),
+                        is_known:is_known,
                     })
                 }
             }

@@ -43,11 +43,11 @@ class MetinModel{
         return $this->db->query($sql)->row();
     }
     
-    public function itemUpdate($text_id,$field,$value){
+    public function itemUpdate( int $text_id, string $field,string $value){
         $this->db->query("UPDATE text_list SET `$field`='$value' WHERE text_id='$text_id'");
         return $this->db->affected_rows>0?'ok':'idle';
     }
-    public function itemDelete($text_id){
+    public function itemDelete( int $text_id){
         $this->db->query("DELETE FROM text_list WHERE text_id='$text_id'");
         $this->db->query("DELETE word_list FROM word_list LEFT JOIN sentence_member_list USING(word_id) WHERE sentence_id IS NULL");
         return $this->db->affected_rows;

@@ -3,7 +3,7 @@ namespace Models;
 
 class Db extends \mysqli{
     function __construct() {
-        parent::__construct('127.0.0.1', 'root', '', 'elek_db');
+        parent::__construct('127.0.0.1', 'root', 'root', 'elek_db');
     }
     
     public $result;

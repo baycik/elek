@@ -7,30 +7,52 @@ class WordModel{
     function __construct(){
         $this->db=new Db();
     }
-    
-    public function listGet( $text_id, $sentence_id, $query='' ){
-        $like=$this->db->escape_string($query);
-        $where="";
-        if($text_id){
-            $where.="AND `text_id`='$text_id'";
-        }
-        if($sentence_id){
-            $where.="AND `sentence_id`='$sentence_id'";
+
+    public function itemMetaGet(string $word){
+        $global_word_count=$this->listCountGet();
+        $sql="
+            SELECT
+                *,
+                ROUND(word_rank/{$global_word_count},2) global_rank,
+                {$global_word_count} global_word_count
+            FROM
+                word_list
+            WHERE
+                word_data=LOWER('$word')
+        ";
+        $meta=$this->db->query($sql)->row();
+
+        if(!$meta){
+            return $meta;
         }
         $sql="
             SELECT
+                sentence_id,
+                sentence_data
+            FROM
+                sentence_list
+                    JOIN
+                sentence_member_list USING(sentence_id)
+            WHERE
+                word_id={$meta->word_id}
+            GROUP BY sentence_id
+            LIMIT 3
+        ";
+        $meta->sentence_list=$this->db->query($sql)->rows();
+        return $meta;
+    }
+
+    
+    public function listGet( string $query=null ){
+        $sql="
+            SELECT
                 word_list.*,
-                COUNT(*) repeated
+                lugat_wordform_id IS NOT NULL is_known
             FROM
                 word_list
-                    JOIN
-                sentence_member_list USING(word_id)
-                    JOIN
-                sentence_list USING(sentence_id)
             WHERE
-                word_data LIKE '%$like%'
-                $where
-            GROUP BY word_id
+                word_data LIKE '%$query%'
+            ORDER BY lugat_wordform_id IS NOT NULL
             ";
         return $this->db->query($sql)->rows();
     }

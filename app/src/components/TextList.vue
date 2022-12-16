@@ -22,7 +22,7 @@
                     <sui-input v-model="metin.text_author" @change="itemUpdate(metin.text_id,'text_author',metin.text_author)" style="width:100%"/>
                 </td>
                 <td>
-                    <sui-input v-model="metin.text_title" @change="itemUpdate('{{metin.text_id}}')" style="width:100%"/>
+                    <sui-input v-model="metin.text_title" @change="itemUpdate(metin.text_id,'text_title',metin.text_title)" style="width:100%"/>
                 </td>
                 <td>
                     {{metin.date}}
@@ -61,7 +61,7 @@
     <button class="ui button" @click="fileUploadInit()"><i class="icon plus"></i>Metin yukle</button>
 </sui-segment>
 
-<input type="file" ref="metin_uploader" name="items[]" multiple style="display:none" @change="fileUpload()">
+<input type="file" ref="metin_uploader" name="items[]" multiple style="display:none" @change="fileUpload()" />
 
 </template>
 

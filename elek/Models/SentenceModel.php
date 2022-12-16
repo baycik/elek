@@ -8,8 +8,14 @@ class SentenceModel{
         $this->db=new Db();
     }
     
-    public function listGet( $text_id, $query=null ){
-        $like=$this->db->escape_string(trim($query));
+    public function listGet( int $text_id=0, $query=null ){
+        $where="";
+        if($text_id){
+            $where.="AND text_id=$text_id";
+        }
+        if($query){
+            $where.="AND sentence_data like '%".$this->db->escape_string(trim($query))."%'";
+        }
         $sql="
             SELECT
                 sl.*,GROUP_CONCAT(word_data) known_words
@@ -19,9 +25,8 @@ class SentenceModel{
                 sentence_member_list sml USING(sentence_id)
                     LEFT JOIN
                 word_list wl ON sml.word_id=wl.word_id AND lugat_wordform_id IS NOT NULL
-            WHERE
-                text_id='$text_id'
-                AND sentence_data LIKE '%$like%'
+            WHERE 1=1
+                $where
             GROUP BY
                 sl.sentence_id
             ";

@@ -11,7 +11,7 @@ const app=createApp(App)
 .use(router)
 
 app.config.globalProperties.$conf = {
-    hostname:'http://localhost/elek/'
+    hostname:'http://elek.local/'
 }
 
 

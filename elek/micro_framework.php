@@ -13,7 +13,7 @@ function handleCors(){
     }
 }
 handleCors();
-function mb_escape(string $string){
+function mb_escape(string $string=null){
     return mb_ereg_replace('[\x00\x0A\x0D\x1A\x22\x27\x5C]', '\\\0', $string);
 }
 function argumentsParse( $Class, $method ){

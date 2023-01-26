@@ -38,11 +38,11 @@ function view( $path, $data ){
     include "Views/footer.php";
 }
 function user($user_group_title=null){
-    return (object)[
-        'user_id'=>527,
-        'user_name'=>'baycik',
-        'user_group_title'=>'manager'
-    ];
+    // return (object)[
+    //     'user_id'=>527,
+    //     'user_name'=>'johndoe',
+    //     'user_group_title'=>'manager'
+    // ];
     $db=new \Models\Db();
     $session_id=session_id();
     $sql="SELECT 
@@ -62,6 +62,18 @@ function user($user_group_title=null){
             AND IF('$user_group_title',jug.title='$user_group_title',1)";
     return $db->query($sql)->row();
 }
+function parseDotEnv(){
+    $dotenv=file_get_contents('../../.env');
+    $lines = preg_split("/[\n\r]+/", $dotenv);
+    foreach($lines as $line){
+        $var=explode('=',$line);
+        if( strpos(trim($var[0]),'#')===0 ){
+            continue;
+        }
+        putenv(trim($var[0])."=".trim($var[1]));
+    }
+}
+parseDotEnv();
 
 $path=$_GET['page']??'Metin/index';
 $page=explode('/',$path);

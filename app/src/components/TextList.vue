@@ -9,6 +9,7 @@
             <tr>
                 <th>Yazar adi</th>
                 <th>Serleva</th>
+                <th>Yayinlanuv tarihi</th>
                 <th>Yuklenme tarihi</th>
                 <th>Arifler sayisi</th>
                 <th>Cumleler</th>
@@ -19,10 +20,13 @@
         <tbody>
             <tr v-for="metin in computedTextList" :key="metin.text_id">
                 <td>
-                    <sui-input v-model="metin.text_author" @change="itemUpdate(metin.text_id,'text_author',metin.text_author)" style="width:100%"/>
+                    <input v-model="metin.text_author" @change="itemUpdate(metin.text_id,'text_author',metin.text_author)" style="width:100%"/>
                 </td>
                 <td>
-                    <sui-input v-model="metin.text_title" @change="itemUpdate(metin.text_id,'text_title',metin.text_title)" style="width:100%"/>
+                    <input v-model="metin.text_title" @change="itemUpdate(metin.text_id,'text_title',metin.text_title)" style="width:100%"/>
+                </td>
+                <td>
+                    <input v-model="metin.text_date" type="date" @change="itemUpdate(metin.text_id,'text_date',metin.text_date)" style="width:100%"/>
                 </td>
                 <td>
                     {{metin.date}}
@@ -47,22 +51,14 @@
                     </sui-button>
                 </td>
                 <td>
-                    <sui-dropdown button class="primary" icon="bars">
-                        <sui-dropdown-menu>
-                            <sui-dropdown-item text="Cumlelere koz at" icon="list" />
-                            <sui-dropdown-item text="Sozlere koz at" icon="list alternate outline" />
-                            <sui-dropdown-item text="Metinni Sil" icon="trash red"  @click="itemDelete(metin.text_id)"/>
-                        </sui-dropdown-menu>
-                    </sui-dropdown>
+                    <sui-button fluid @click="itemDelete(metin.text_id)">Metinni Sil <sui-icon name="trash red" /></sui-button>
                 </td>
             </tr>
         </tbody>
     </table>
     <button class="ui button" @click="fileUploadInit()"><i class="icon plus"></i>Metin yukle</button>
+    <input type="file" ref="metin_uploader" name="items[]" multiple style="display:none" @change="fileUpload()" />
 </sui-segment>
-
-<input type="file" ref="metin_uploader" name="items[]" multiple style="display:none" @change="fileUpload()" />
-
 </template>
 
 <script>
@@ -126,7 +122,11 @@ export default{
             const request={
                 text_id,field,value
             }
-            await this.$post('Metin/itemUpdate',request)
+            try{
+                await this.$post('Metin/itemUpdate',request)
+            } catch{
+                alert("Soñ işlev sırasında hata peyda oldı")
+            }
         },
         async itemDelete(text_id){
             if(!confirm("Silinsin mi?")){
@@ -135,7 +135,11 @@ export default{
             const request={
                 text_id
             }
-            await this.$post('Metin/itemDelete',request)
+            try{
+                await this.$post('Metin/itemDelete',request)
+            } catch{
+                alert("Soñ işlev sırasında hata peyda oldı")
+            }
             this.listGet();
         },
         async listGet(){

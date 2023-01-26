@@ -25,13 +25,13 @@
 
       <div class="ui vertical fluid menu">
         <a href="#/" class="teal item">
-          Text List
+          Metin Listesi
         </a>
         <a href="#/sentence-list" class="item">
-          Sentence List
+          Cümle Listesi
         </a>
         <a href="#/word-list" class="item">
-          Word List
+          Söz Listesi
         </a>
       </div>
     </nav>
@@ -44,7 +44,7 @@
 <script>
 
 export default {
-  name: 'App',
+  name: 'ElekProject',
   components: {
   }
 }

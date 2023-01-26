@@ -4,15 +4,19 @@ namespace Controllers;
 class Word{
     public function index(){
     }
-    public function itemUpdate( int $text_id, string $field, string $value ){
-        $MetinModel= new \Models\MetinModel();
-        return $MetinModel->itemUpdate($text_id,$field,$value);
+    public function itemUpdate( int $word_id, string $field, string $value ){
+        $user=user('ElekEditor');
+        if(!$user){
+            return false;
+        }
+        $WordModel= new \Models\WordModel();
+        return $WordModel->itemUpdate($word_id,$field,$value);
     }
     
-    public function itemDelete( int $text_id ){
-        $MetinModel= new \Models\MetinModel();
-        return $MetinModel->itemDelete($text_id);
-    }
+    // public function itemDelete( int $text_id ){
+    //     $MetinModel= new \Models\MetinModel();
+    //     return $MetinModel->itemDelete($text_id);
+    // }
 
     public function itemMetaGet( string $word ){
         $WordModel= new \Models\WordModel();

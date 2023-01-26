@@ -5,6 +5,10 @@ class ElekModel {
     private $pageLength=10000;
     private $fileOffset=0;
     private $path=null;
+    private $text_id;
+    private $sentence_id;
+    private $word_id;
+    private $db;
     
     function __construct() {
         $this->db=new Db();
@@ -12,11 +16,11 @@ class ElekModel {
     
     public function setFile( $path ){
         $this->path=$path;
-        $row=$this->db->query("SELECT * FROM text_list WHERE text_file_path='".$this->db->escape_string($this->path)."'")->row();
+        $row=$this->db->query("SELECT * FROM elek_text_list WHERE text_file_path='".$this->db->escape_string($this->path)."'")->row();
         if($row){
             $this->text_id=$row->text_id;
         } else {
-            $this->db->query("INSERT text_list SET text_file_path='".$this->db->escape_string($this->path)."',created_at=NOW()");
+            $this->db->query("INSERT elek_text_list SET text_file_path='".$this->db->escape_string($this->path)."',created_at=NOW()");
             $this->text_id=$this->db->insert_id;
         }
         return $this;
@@ -55,7 +59,7 @@ class ElekModel {
     
     private function textPageSave($page){
         $this->db->begin_transaction();
-        $this->db->query("UPDATE text_list SET text_data=CONCAT(COALESCE(text_data,''),'".$this->db->escape_string($page)."') WHERE text_id='$this->text_id'");
+        $this->db->query("UPDATE elek_text_list SET text_data=CONCAT(COALESCE(text_data,''),'".$this->db->escape_string($page)."') WHERE text_id='$this->text_id'");
         $this->split_to_sentences($page);
         $this->db->commit();
     }
@@ -72,7 +76,7 @@ class ElekModel {
                 continue;
             }
             $filtered_sentence=preg_replace('/^[^\w]+|[^(\w.?!)]+$/u', '',$sentence,-1);
-            $this->db->query("INSERT sentence_list SET text_id='$this->text_id', sentence_data='".$this->db->escape_string($filtered_sentence)."'");
+            $this->db->query("INSERT elek_sentence_list SET text_id='$this->text_id', sentence_data='".$this->db->escape_string($filtered_sentence)."'");
             $this->sentence_id=$this->db->insert_id;
             $this->split_to_words( $sentence );
         }
@@ -86,27 +90,27 @@ class ElekModel {
                 continue;
             }
             $word_joined=preg_replace('/\W/u','',$word,-1);
-            $row=$this->db->query("SELECT * FROM word_list WHERE word_data=LOWER('$word_joined')")->row();
+            $row=$this->db->query("SELECT * FROM elek_word_list WHERE word_data=LOWER('$word_joined')")->row();
             if($row){
                 $this->word_id=$row->word_id;
             } else {
-                $this->db->query("INSERT IGNORE word_list SET word_data=LOWER('$word_joined')");
+                $this->db->query("INSERT IGNORE elek_word_list SET word_data=LOWER('$word_joined')");
                 $this->word_id=$this->db->insert_id;
             }
             echo $this->db->error;
-            $this->db->query("INSERT IGNORE sentence_member_list SET sentence_id='$this->sentence_id', word_id='$this->word_id'");
+            $this->db->query("INSERT IGNORE elek_sentence_member_list SET sentence_id='$this->sentence_id', word_id='$this->word_id'");
         }
     }
     
     public function textStatsCalc( $text_id ){
         $sql="
             UPDATE
-                text_list
+                elek_text_list
             SET
                 text_letter_count=CHAR_LENGTH(text_data),
-                text_sentence_count=(SELECT COUNT(*) FROM sentence_list WHERE text_id=text_id),
-                text_word_total_count=(SELECT COUNT(*) FROM sentence_member_list WHERE sentence_id=sentence_id),
-                text_word_unique_count=(SELECT COUNT(DISTINCT word_id) FROM sentence_member_list WHERE sentence_id=sentence_id) 
+                text_sentence_count=(SELECT COUNT(*) FROM elek_sentence_list WHERE text_id=text_id),
+                text_word_total_count=(SELECT COUNT(*) FROM elek_sentence_member_list WHERE sentence_id=sentence_id),
+                text_word_unique_count=(SELECT COUNT(DISTINCT word_id) FROM elek_sentence_member_list WHERE sentence_id=sentence_id) 
             WHERE
                 text_id='$text_id'
             ";
@@ -122,19 +126,19 @@ class ElekModel {
             (SELECT 
                 wl.word_id,COUNT(*) word_count
             FROM
-                word_list wl
+                elek_word_list wl
                     JOIN
-                sentence_member_list USING (word_id)
+                elek_sentence_member_list USING (word_id)
             GROUP BY word_id)ttt);";
         $update_rank_sql="UPDATE
-            word_list wl
+            elek_word_list wl
                 JOIN
             tmp_count tc USING (word_id) 
         SET 
             wl.word_count = tc.word_count,
             wl.word_rank = tc.word_rank";
         $link_sql="UPDATE
-                word_list
+                elek_word_list
                     JOIN
                 lgt_wordform_list lwl ON wordform=word_data
             SET

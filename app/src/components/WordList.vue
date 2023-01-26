@@ -4,8 +4,11 @@
         <sui-header ref="ttt">Soz Listesi</sui-header>
         <sui-input icon="search" placeholder="Search..." v-model="query"/>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, 200px);gap:10px;margin-top:20px">
-            <div v-for="word in wordList" :key="word.word_id">
-                <sui-label :color="word?.is_known==1?'green':'red'"  @click="itemReveal(word?.word_data)">{{word?.word_data}}</sui-label>
+            <div v-for="word in wordListComp" :key="word.word_id">
+                <sui-label :color="word?.color"  @click="itemReveal(word?.word_data)">
+                    <s v-if="word.word_status=='typo'">{{word?.word_data}}</s>
+                    <span v-else>{{word?.word_data}}</span>
+                </sui-label>
             </div>
         </div>
     </sui-segment>
@@ -28,6 +31,31 @@ export default{
         this.listGet();
     },
     computed:{
+        wordListComp(){
+            for(let word of this.wordList){
+                if(word.is_known==1){
+                    word.color='green'
+                } else
+                if(word.word_status=='new'){
+                    word.color='teal'
+                } else
+                if(word.word_status=='alternative'){
+                    word.color='primary'
+                } else
+                if(word.word_status=='skip'){
+                    word.color='yellow'
+                } else
+                if(word.word_status=='typo'){
+                    word.color='orange'
+                } else
+                if(word.is_known!=1){
+                    word.color='red'
+                } else {
+                    word.color='gray'
+                }
+            }
+            return this.wordList
+        }
     },
     methods:{
         itemFindMeta(word_data,word_list){
@@ -39,7 +67,6 @@ export default{
             return null
         },
         itemReveal(word_data){
-            console.log(word_data)
             this.$refs.wmodal.show(word_data)
         },
         async listGet(){

@@ -37,6 +37,31 @@ function view( $path, $data ){
     include "Views/{$path}.php";
     include "Views/footer.php";
 }
+function user($user_group_title=null){
+    return (object)[
+        'user_id'=>527,
+        'user_name'=>'baycik',
+        'user_group_title'=>'manager'
+    ];
+    $db=new \Models\Db();
+    $session_id=session_id();
+    $sql="SELECT 
+            userid user_id,
+            ju.name user_name,
+            jug.title user_group_title
+        FROM
+            joom_session js
+                JOIN 
+            joom_users ju ON js.userid=ju.id
+                JOIN
+            joom_user_usergroup_map juum ON juum.user_id=js.userid
+                JOIN
+            joom_usergroups jug ON jug.id=group_id
+        WHERE
+            session_id='$session_id'
+            AND IF('$user_group_title',jug.title='$user_group_title',1)";
+    return $db->query($sql)->row();
+}
 
 $path=$_GET['page']??'Metin/index';
 $page=explode('/',$path);

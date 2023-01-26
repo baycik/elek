@@ -3,7 +3,7 @@ namespace Models;
 
 //include 'Db.php';
 class SentenceModel{
-    
+    private $db;
     function __construct(){
         $this->db=new Db();
     }
@@ -20,11 +20,11 @@ class SentenceModel{
             SELECT
                 sl.*,GROUP_CONCAT(word_data) known_words
             FROM
-                sentence_list sl
+                elek_sentence_list sl
                     LEFT JOIN
-                sentence_member_list sml USING(sentence_id)
+                elek_sentence_member_list sml USING(sentence_id)
                     LEFT JOIN
-                word_list wl ON sml.word_id=wl.word_id AND lugat_wordform_id IS NOT NULL
+                elek_word_list wl ON sml.word_id=wl.word_id AND lugat_wordform_id IS NOT NULL
             WHERE 1=1
                 $where
             GROUP BY
@@ -55,9 +55,9 @@ class SentenceModel{
                 ROUND(word_rank/{$this->global_word_count},2) global_rank,
                 {$this->global_word_count} global_word_count
             FROM
-                sentence_member_list
+                elek_sentence_member_list
                     JOIN
-                word_list USING(word_id)
+                elek_word_list USING(word_id)
             WHERE
                 sentence_id='$sentence_id'
         ";
@@ -65,11 +65,11 @@ class SentenceModel{
     }
     
     // public function itemUpdate($text_id,$field,$value){
-    //     $this->db->query("UPDATE text_list SET `$field`='$value' WHERE text_id='$text_id'");
+    //     $this->db->query("UPDATE elek_text_list SET `$field`='$value' WHERE text_id='$text_id'");
     // }
     // public function itemDelete($text_id){
-    //     $this->db->query("DELETE FROM text_list WHERE text_id='$text_id'");
-    //     $this->db->query("DELETE word_list FROM word_list LEFT JOIN sentence_member_list USING(word_id) WHERE sentence_id IS NULL");
+    //     $this->db->query("DELETE FROM elek_text_list WHERE text_id='$text_id'");
+    //     $this->db->query("DELETE elek_word_list FROM elek_word_list LEFT JOIN elek_sentence_member_list USING(word_id) WHERE sentence_id IS NULL");
     //     return $this->db->affected_rows;
     // }
 }
